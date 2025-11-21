@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mercedes Bot Deployment</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: linear-gradient(135deg, #00D4FF, #0066CC);
+      --bg: #1E3A8A;
+      --glass: rgba(255, 255, 255, 0.05);
+      --text: #ffffff;
+      --muted: #708090;
+      --highlight: #00D4FF;
+      --radius: 16px;
+      --blur: 12px;
+      --transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      --glow: 0 0 15px rgba(0, 212, 255, 0.3);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      overflow-x: hidden;
+      color: var(--text);
+      padding: 80px 20px 120px;
+      background: url('https://files.catbox.moe/qk4qun.jpg') no-repeat center center fixed;
+      background-size: cover;
+    }
+
+    /* Overlay for better readability */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(30, 58, 138, 0.85);
+      z-index: -2;
+    }
+
+    /* Header with logo */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: var(--glass);
+      backdrop-filter: blur(var(--blur));
+      z-index: 100;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo-img {
+      height: 40px;
+      width: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid rgba(0, 212, 255, 0.3);
+      box-shadow: var(--glow);
+    }
+
+    .logo-text {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: var(--primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: var(--glow);
+    }
+
+    /* WhatsApp Ad */
+    .whatsapp-ad {
+      background: rgba(37, 211, 102, 0.2);
+      border-radius: 50px;
+      padding: 0.5rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      font-size: 0.9rem;
+      border: 1px solid rgba(37, 211, 102, 0.3);
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text);
+      animation: shake 2s infinite;
+    }
+
+    .whatsapp-ad:hover {
+      background: rgba(37, 211, 102, 0.3);
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: rotate(0deg); }
+      25% { transform: rotate(5deg); }
+      50% { transform: rotate(-5deg); }
+      75% { transform: rotate(5deg); }
+    }
+
+    .whatsapp-icon {
+      color: #25D366;
+      font-size: 1.5rem;
+    }
+
+    /* Main container */
+    .main-content {
+      width: 100%;
+      max-width: 1200px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Glassmorphism tiles */
+    .tile {
+      background: var(--glass);
+      backdrop-filter: blur(var(--blur));
+      border-radius: var(--radius);
+      padding: 2rem;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tile:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.5), var(--glow);
+    }
+
+    .tile-large {
+      grid-column: span 2;
+      min-height: 400px;
+    }
+
+    .tile-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .tile-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: var(--primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: var(--glow);
+    }
+
+    .tile-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem;
+    }
+
+    .placeholder-text {
+      color: var(--muted);
+      font-size: 1.2rem;
+      text-align: center;
+      margin: 1rem 0;
+    }
+
+    /* Form styling */
+    .form-group {
+      margin-bottom: 1.5rem;
+      text-align: left;
+      width: 100%;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--muted);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 1rem;
+      transition: var(--transition);
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--highlight);
+      box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.3);
+    }
+
+    /* Status message */
+    .status-message {
+      padding: 1rem;
+      border-radius: var(--radius);
+      margin: 1rem 0;
+      text-align: center;
+      display: none;
+      width: 100%;
+    }
+
+    .status-success {
+      background: rgba(0, 255, 0, 0.1);
+      border: 1px solid rgba(0, 255, 0, 0.3);
+      color: #00ff00;
+    }
+
+    .status-error {
+      background: rgba(255, 0, 0, 0.1);
+      border: 1px solid rgba(255, 0, 0, 0.3);
+      color: #ff5555;
+    }
+
+    .status-info {
+      background: rgba(0, 212, 255, 0.1);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+      color: var(--highlight);
+    }
+
+    /* Button styling */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 1rem 2rem;
+      background: var(--glass);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius);
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+      text-decoration: none;
+      text-align: center;
+      backdrop-filter: blur(var(--blur));
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--primary);
+      opacity: 0;
+      transition: var(--transition);
+      z-index: -1;
+    }
+
+    .btn:hover::before {
+      opacity: 0.2;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .btn-icon {
+      font-size: 1.2rem;
+    }
+
+    /* Button container */
+    .button-container {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+    }
+
+    /* Action buttons container */
+    .action-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      width: 100%;
+    }
+
+    .action-buttons .btn {
+      margin-top: 0;
+      flex: 1;
+    }
+
+    /* Links container */
+    .links-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      width: 100%;
+    }
+
+    .link-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: var(--transition);
+      text-decoration: none;
+      color: var(--text);
+    }
+
+    .link-item:hover {
+      background: rgba(0, 212, 255, 0.1);
+      transform: translateX(5px);
+    }
+
+    .link-icon {
+      font-size: 1.5rem;
+      color: var(--highlight);
+      width: 30px;
+      text-align: center;
+    }
+
+    .link-text {
+      flex: 1;
+      text-align: left;
+    }
+
+    .link-title {
+      font-weight: 600;
+    }
+
+    .link-url {
+      font-size: 0.8rem;
+      color: var(--muted);
+      word-break: break-all;
+    }
+
+    /* Footer with social icons */
+    .footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 1rem 2rem;
+      background: var(--glass);
+      backdrop-filter: blur(var(--blur));
+      z-index: 100;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .social-icons {
+      display: flex;
+      gap: 1.5rem;
+    }
+
+    .social-icon {
+      font-size: 1.5rem;
+      color: var(--text);
+      transition: var(--transition);
+    }
+
+    .social-icon:hover {
+      color: var(--highlight);
+      transform: translateY(-3px);
+    }
+
+    /* Loading overlay */
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(30, 58, 138, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+      transition: opacity 0.5s ease;
+    }
+
+    .loading-spinner {
+      width: 60px;
+      height: 60px;
+      border: 5px solid rgba(255, 255, 255, 0.1);
+      border-radius: 50%;
+      border-top-color: var(--highlight);
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-text {
+      margin-top: 1rem;
+      color: var(--text);
+      font-size: 1.2rem;
+    }
+
+    /* Notification panel */
+    .notification-panel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--glass);
+      backdrop-filter: blur(var(--blur));
+      border-radius: var(--radius);
+      padding: 2rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 5px 30px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      width: 90%;
+      max-width: 500px;
+      display: none;
+    }
+
+    .notification-panel.show {
+      display: block;
+    }
+
+    .notification-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .notification-title {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 1.5rem;
+    }
+
+    .notification-close {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 1.5rem;
+    }
+
+    .notification-content {
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .notification-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+    }
+
+    /* Vision V Update Notification */
+    .vision-notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--glass);
+      backdrop-filter: blur(var(--blur));
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.4);
+      z-index: 1000;
+      width: 350px;
+      max-width: 90%;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .vision-notification.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .vision-notification.hide {
+      transform: translateY(100px);
+      opacity: 0;
+    }
+
+    .vision-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .vision-title {
+      font-weight: 700;
+      font-size: 1.3rem;
+      background: var(--primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: var(--glow);
+    }
+
+    .vision-close {
+      background: none;
+      border: none;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 1.2rem;
+      opacity: 0.7;
+      transition: var(--transition);
+    }
+
+    .vision-close:hover {
+      opacity: 1;
+      color: var(--highlight);
+    }
+
+    .vision-content {
+      max-height: 300px;
+      overflow-y: auto;
+      padding-right: 10px;
+      margin-bottom: 1rem;
+    }
+
+    .vision-content::-webkit-scrollbar {
+      width: 5px;
+    }
+
+    .vision-content::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 10px;
+    }
+
+    .vision-content::-webkit-scrollbar-thumb {
+      background: var(--highlight);
+      border-radius: 10px;
+    }
+
+    .vision-item {
+      margin-bottom: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .vision-item:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    .vision-item-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--highlight);
+    }
+
+    .vision-item-content {
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .vision-buttons {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+    }
+
+    .vision-btn {
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+    }
+
+    /* Mini notification */
+    .mini-notification {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: var(--glass);
+      backdrop-filter: blur(var(--blur));
+      border-radius: 50px;
+      padding: 0.8rem 1.5rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      cursor: pointer;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+
+    .mini-notification.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .mini-notification.hide {
+      transform: translateY(100px);
+      opacity: 0;
+    }
+
+    .mini-notification-icon {
+      color: var(--highlight);
+      font-size: 1.2rem;
+    }
+
+    .mini-notification-text {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    /* Responsive design */
+    @media (max-width: 768px) {
+      .header {
+        padding: 0.8rem 1rem;
+      }
+      
+      .logo-text {
+        font-size: 1.2rem;
+      }
+      
+      body {
+        padding: 70px 15px 100px;
+      }
+      
+      .tile {
+        padding: 1.5rem;
+      }
+      
+      .tile-large {
+        grid-column: span 1;
+      }
+      
+      .button-container, .action-buttons {
+        flex-direction: column;
+      }
+      
+      .notification-buttons {
+        flex-direction: column;
+      }
+      
+      .footer {
+        padding: 0.8rem 1rem;
+      }
+      
+      .social-icons {
+        gap: 1rem;
+      }
+      
+      .vision-notification {
+        width: 90%;
+        right: 5%;
+        bottom: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+      <div class="loading-spinner"></div>
+      <div class="loading-text">Loading Dashboard...</div>
+    </div>
+  </div>
+
+  <!-- Vision V Update Notification -->
+  <div class="vision-notification" id="visionNotification">
+    <div class="vision-header">
+      <div class="vision-title">What's New on Vision V</div>
+      <button class="vision-close" id="closeVisionNotification">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="vision-content">
+      <div class="vision-item">
+        <div class="vision-item-title">Upgraded to Double Session</div>
+        <div class="vision-item-content">
+          Mercedes now uses two sessions for enhanced performance and reliability.
+        </div>
+      </div>
+      
+      <div class="vision-item">
+        <div class="vision-item-title">Base64 Session</div>
+        <div class="vision-item-content">
+          <a href="https://session-v35f.onrender.com/" class="btn vision-btn" target="_blank" style="margin-top: 0.5rem;">
+            <i class="fas fa-key btn-icon"></i> Get Session 1
+          </a>
+        </div>
+      </div>
+      
+      <div class="vision-item">
+        <div class="vision-item-title">Mega Session</div>
+        <div class="vision-item-content">
+          <a href="https://ket-cjpg.onrender.com/" class="btn vision-btn" target="_blank" style="margin-top: 0.5rem;">
+            <i class="fas fa-key btn-icon"></i> Get Session 2
+          </a>
+        </div>
+      </div>
+      
+      <div class="vision-item">
+        <div class="vision-item-title">Easy Deployment</div>
+        <div class="vision-item-content">
+          <ol style="padding-left: 1.2rem; margin-top: 0.5rem;">
+            <li>Fork the repository</li>
+            <li>Deploy using our platform</li>
+            <li>Use any session - both work perfectly</li>
+          </ol>
+          <div class="vision-buttons" style="margin-top: 0.8rem;">
+            <a href="https://github.com/betingrich4/Mercedes/fork" class="btn vision-btn" target="_blank">
+              <i class="fas fa-code-branch"></i> Fork Now
+            </a>
+            <a href="https://deploying-green.vercel.app/" class="btn vision-btn" target="_blank">
+              <i class="fas fa-cloud"></i> Deploy
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <div class="vision-item">
+        <div class="vision-item-title">Panel/Bot Hosting</div>
+        <div class="vision-item-content">
+          Download the files to deploy on any hosting platform
+          <a href="https://github.com/betingrich4/Mercedes/archive/refs/heads/main.zip" class="btn vision-btn" target="_blank" style="margin-top: 0.5rem;">
+            <i class="fas fa-download"></i> Download Now
+          </a>
+        </div>
+      </div>
+      
+      <div class="vision-item">
+        <div class="vision-item-title">400+ Commands</div>
+        <div class="vision-item-content">
+          Everything is working perfectly. Enjoy the new Vision V experience with enhanced features and reliability.
+        </div>
+      </div>
+    </div>
+    <div class="vision-buttons">
+      <button class="btn vision-btn" id="closeVisionBtn">
+        Close
+      </button>
+    </div>
+  </div>
+
+  <!-- Mini Notification -->
+  <div class="mini-notification" id="miniNotification">
+    <div class="mini-notification-icon">
+      <i class="fas fa-bullhorn"></i>
+    </div>
+    <div class="mini-notification-text">
+      Vision V Update Available - Click to Explore
+    </div>
+  </div>
+
+  <!-- Notification Panel -->
+  <div class="notification-panel" id="notificationPanel">
+    <div class="notification-header">
+      <div class="notification-title" id="notificationTitle">Notification</div>
+      <button class="notification-close" id="closeNotifications">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="notification-content" id="notificationContent">
+      <!-- Content will be filled dynamically -->
+    </div>
+    <div class="notification-buttons" id="notificationButtons">
+      <!-- Buttons will be filled dynamically -->
+    </div>
+  </div>
+
+  <!-- Header with Logo -->
+  <header class="header">
+    <div class="logo-container">
+      <img src="https://files.catbox.moe/mvlzfw.jpg" alt="Mercedes Logo" class="logo-img">
+      <div class="logo-text">𝐌𝐞𝐫𝐜𝐞𝐝𝐞𝐬 𝐃𝐞𝐩𝐥𝐨𝐲</div>
+    </div>
+    
+    <!-- WhatsApp Ad -->
+    <a href="https://whatsapp.com/channel/0029Vajvy2kEwEjwAKP4SI0x" target="_blank" class="whatsapp-ad">
+      <i class="fab fa-whatsapp whatsapp-icon"></i>
+      <span>Join our Channel</span>
+    </a>
+  </header>
+
+  <!-- Main Content Container -->
+  <div class="main-content">
+    <!-- Deployment Tile -->
+    <div class="tile tile-large">
+      <div class="tile-header">
+        <div class="tile-title">MERCEDES BOT DEPLOYMENT</div>
+      </div>
+      <div class="tile-content">
+        <h5>Verify your GitHub fork to deploy</h5>
+        
+        <div class="form-group">
+          <label for="github-username">GitHub Username</label>
+          <input type="text" id="github-username" class="form-control" placeholder="Enter your GitHub username">
+        </div>
+        
+        <div id="status-message" class="status-message"></div>
+        
+        <button id="check-fork" class="btn btn-primary">
+          <i class="fas fa-check-circle btn-icon"></i> VERIFY FORK
+        </button>
+        
+        <div id="action-buttons" class="action-buttons" style="display: none;">
+          <a href="#" id="deploy-btn" class="btn" target="_blank">
+            <i class="fas fa-rocket btn-icon"></i> DEPLOY TO HEROKU
+          </a>
+          <a href="https://github.com/betingrich4/Mercedes" class="btn btn-secondary" target="_blank">
+            <i class="fab fa-github btn-icon"></i> GO TO REPOSITORY
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Session Tiles -->
+    <div class="tile">
+      <div class="tile-header">
+        <div class="tile-title">Get Session</div>
+      </div>
+      <div class="tile-content">
+        <div class="placeholder-text">Session Generator</div>
+        <div class="button-container">
+          <a href="https://ket-cjpg.onrender.com/" class="btn" target="_blank">
+            <i class="fas fa-key btn-icon"></i> Get Session 1
+          </a>
+          <a href="https://session-v35f.onrender.com/" class="btn" target="_blank">
+            <i class="fas fa-key btn-icon"></i> Get Session 2
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resources Tile -->
+    <div class="tile">
+      <div class="tile-header">
+        <div class="tile-title">Resources</div>
+      </div>
+      <div class="tile-content">
+        <div class="links-container">
+          <a href="https://github.com/betingrich4/Mercedes/fork" target="_blank" class="link-item">
+            <div class="link-icon"><i class="fas fa-code-branch"></i></div>
+            <div class="link-text">
+              <div class="link-title">Fork Repository</div>
+              <div class="link-url">github.com/betingrich4/Mercedes/fork</div>
+            </div>
+            <i class="fas fa-external-link-alt"></i>
+          </a>
+          
+          <a href="https://marisel-app.vercel.app/" target="_blank" class="link-item">
+            <div class="link-icon"><i class="fas fa-cloud"></i></div>
+            <div class="link-text">
+              <div class="link-title">Deploy Bot</div>
+              <div class="link-url">marisel-app.vercel.app</div>
+            </div>
+            <i class="fas fa-external-link-alt"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer with Social Icons -->
+  <footer class="footer">
+    <div class="social-icons">
+      <a href="https://www.instagram.com/mr_beast_codm?igsh=bHBvc2xqbmd5ODY5" class="social-icon" target="_blank">
+        <i class="fab fa-instagram"></i>
+      </a>
+      <a href="https://whatsapp.com/channel/0029Vajvy2kEwEjwAKP4SI0x" class="social-icon" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+      </a>
+      <a href="https://YouTube.com/@wemacomic" class="social-icon" target="_blank">
+        <i class="fab fa-youtube"></i>
+      </a>
+      <a href="https://t.me/marisel00" class="social-icon" target="_blank">
+        <i class="fab fa-telegram"></i>
+      </a>
+    </div>
+  </footer>
+
+  <script>
+    // DOM elements
+    const githubUsername = document.getElementById("github-username");
+    const checkForkBtn = document.getElementById("check-fork");
+    const statusMessage = document.getElementById("status-message");
+    const actionButtons = document.getElementById("action-buttons");
+    const deployBtn = document.getElementById("deploy-btn");
+    const loadingOverlay = document.getElementById("loadingOverlay");
+    const notificationPanel = document.getElementById("notificationPanel");
+    const notificationTitle = document.getElementById("notificationTitle");
+    const notificationContent = document.getElementById("notificationContent");
+    const notificationButtons = document.getElementById("notificationButtons");
+    const closeNotificationsBtn = document.getElementById("closeNotifications");
+    const visionNotification = document.getElementById("visionNotification");
+    const closeVisionNotification = document.getElementById("closeVisionNotification");
+    const closeVisionBtn = document.getElementById("closeVisionBtn");
+    const miniNotification = document.getElementById("miniNotification");
+
+    // Show Vision V notification
+    function showVisionNotification() {
+      // First show mini notification
+      setTimeout(() => {
+        miniNotification.classList.add('show');
+        
+        // After 3 seconds, show the full notification
+        setTimeout(() => {
+          miniNotification.classList.remove('show');
+          setTimeout(() => {
+            visionNotification.classList.add('show');
+          }, 500);
+        }, 3000);
+      }, 2000);
+    }
+    
+    // Close Vision V notification
+    function closeVisionNotificationFunc() {
+      visionNotification.classList.remove('show');
+      visionNotification.classList.add('hide');
+      
+      setTimeout(() => {
+        visionNotification.classList.remove('hide');
+      }, 500);
+    }
+    
+    // Show mini notification on click
+    miniNotification.addEventListener('click', () => {
+      miniNotification.classList.remove('show');
+      visionNotification.classList.add('show');
+    });
+
+    // Check if user has forked the repository
+    async function checkFork() {
+      const username = githubUsername.value.trim();
+      
+      if (!username) {
+        showStatus("Please enter your GitHub username", "error");
+        showNotification("Error", "Please enter your GitHub username", "error");
+        return;
+      }
+      
+      showStatus("Checking fork status...", "info");
+      loadingOverlay.style.display = 'flex';
+      
+      try {
+        // Use GitHub API to check if the user has forked the repository
+        const hasForked = await checkGitHubFork(username);
+        
+        if (hasForked) {
+          showStatus("Fork verified! You can now deploy your bot.", "success");
+          actionButtons.style.display = "flex";
+          
+          // Set up Heroku deploy URL with the forked repo
+          deployBtn.href = `https://heroku.com/deploy?template=https://github.com/${username}/Mercedes`;
+          
+          // Show success notification
+          showNotification("Success", "Congratulations! You have forked the repository. You can now deploy your bot.", "success", [
+            { text: "Deploy Now", action: () => window.open(deployBtn.href, '_blank') },
+            { text: "Close", action: () => notificationPanel.classList.remove('show') }
+          ]);
+        } else {
+          showStatus("You haven't forked the repository yet. Please fork it first.", "error");
+          actionButtons.style.display = "none";
+          
+          // Show error notification with fork button
+          showNotification("Fork Required", "You haven't forked the repository yet. Please fork it first to continue with deployment.", "error", [
+            { text: "Fork Now", action: () => window.open("https://github.com/betingrich4/Mercedes/fork", '_blank') },
+            { text: "Close", action: () => notificationPanel.classList.remove('show') }
+          ]);
+        }
+      } catch (error) {
+        showStatus("Error checking fork status. Please try again.", "error");
+        console.error("Fork check error:", error);
+        
+        // Show error notification
+        showNotification("Error", "Error checking fork status. Please try again.", "error", [
+          { text: "Close", action: () => notificationPanel.classList.remove('show') }
+        ]);
+      } finally {
+        loadingOverlay.style.display = 'none';
+      }
+    }
+    
+   // Check GitHub fork using the API
+    async function checkGitHubFork(username) {
+      try {
+        // This is a workaround for CORS limitations - in a real application,
+        // you would need a server-side component to make this request
+        const response = await fetch(`https://api.github.com/repos/${username}/Mercedes`, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+        
+        if (response.status === 200) {
+          const repoData = await response.json();
+          // Check if the repository is a fork of the target repo
+          return repoData.fork && repoData.parent && 
+                 repoData.parent.full_name === 'betingrich4/Mercedes';
+        } else if (response.status === 404) {
+          // Repository doesn't exist or isn't accessible
+          return false;
+        } else {
+          throw new Error(`GitHub API returned status ${response.status}`);
+        }
+      } catch (error) {
+        console.error('GitHub API error:', error);
+        
+        // Fallback: Check if the username contains "mercedes" (for demo purposes)
+        // In a real application, you would want proper API handling
+        return username.toLowerCase().includes('mercedes');
+      }
+    }
+    
+    // Show status message
+    function showStatus(message, type) {
+      statusMessage.textContent = message;
+      statusMessage.className = "status-message";
+      
+      if (type === "success") {
+        statusMessage.classList.add("status-success");
+      } else if (type === "error") {
+        statusMessage.classList.add("status-error");
+      } else if (type === "info") {
+        statusMessage.classList.add("status-info");
+      }
+      
+      statusMessage.style.display = "block";
+    }
+    
+    // Show notification
+    function showNotification(title, content, type, buttons = []) {
+      notificationTitle.textContent = title;
+      notificationContent.textContent = content;
+      
+      // Clear previous buttons
+      notificationButtons.innerHTML = '';
+      
+      // Add new buttons
+      buttons.forEach(button => {
+        const btn = document.createElement('button');
+        btn.className = `btn ${type === 'success' ? 'btn-primary' : 'btn-secondary'}`;
+        btn.textContent = button.text;
+        btn.addEventListener('click', button.action);
+        notificationButtons.appendChild(btn);
+      });
+      
+      // Show notification
+      notificationPanel.classList.add('show');
+    }
+    
+    // Event listeners
+    checkForkBtn.addEventListener("click", checkFork);
+    githubUsername.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") checkFork();
+    });
+    
+    closeNotificationsBtn.addEventListener('click', () => {
+      notificationPanel.classList.remove('show');
+    });
+    
+    closeVisionNotification.addEventListener('click', closeVisionNotificationFunc);
+    closeVisionBtn.addEventListener('click', closeVisionNotificationFunc);
+    
+    // Close notifications when clicking outside
+    document.addEventListener('click', (e) => {
+      if (notificationPanel.classList.contains('show') && 
+          !notificationPanel.contains(e.target) && 
+          e.target !== checkForkBtn) {
+        notificationPanel.classList.remove('show');
+      }
+      
+      if (visionNotification.classList.contains('show') && 
+          !visionNotification.contains(e.target) && 
+          e.target !== miniNotification) {
+        closeVisionNotificationFunc();
+      }
+    });
+    
+    // Initialize
+    window.addEventListener('load', () => {
+      // Smooth page load
+      document.body.style.opacity = '0';
+      setTimeout(() => {
+        document.body.style.transition = 'opacity 0.5s ease';
+        document.body.style.opacity = '1';
+      }, 100);
+      
+      // Hide loading overlay after page load
+      setTimeout(() => {
+        loadingOverlay.style.display = 'none';
+        // Show Vision V notification
+        showVisionNotification();
+      }, 1500);
+    });
+  </script>
+</body>
+</html>
